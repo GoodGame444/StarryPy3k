@@ -27,5 +27,7 @@ class ChatLogger(BasePlugin):
         :return: Boolean; Always true.
         """
         message = data["parsed"]["message"]
-        self.logger.info("{}: {}".format(connection.player.name, message))
+        # FezzedOne: Log entry format is `<NICK> [<ORIGINAL NAME>] {<UUID>}: <MESSAGE>`.
+        self.logger.info("{} [{}] {{{}}}: {}".format(connection.player.alias, connection.player.name,
+                                                     connection.player.uuid, message))
         return True
