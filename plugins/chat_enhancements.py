@@ -140,10 +140,10 @@ class ChatEnhancements(StorageCommandPlugin):
     # Helper functions - Used by commands
 
     def decorate_line(self, connection):
-        timestamp = "{}> <".format(self.make_timestamp())
+        # timestamp = "{}> <".format(self.make_timestamp())
         try:
             p = connection.player
-            sender = timestamp + p.chat_prefix + p.alias + "^reset;"
+            sender = p.chat_prefix + p.alias + "^reset;" # timestamp +
         except AttributeError as e:
             self.logger.warning(
                 "AttributeError in colored_name: {}".format(str(e)))
