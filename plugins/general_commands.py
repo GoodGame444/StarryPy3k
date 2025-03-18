@@ -120,12 +120,12 @@ class GeneralCommands(SimpleCommandPlugin):
             target = self.plugins['player_manager'].get_player_by_uuid(player)
             if connection.player.perm_check("general_commands.who_clientids"):
                 ret_list.append(
-                    "[^red;{}^reset;] {}{}^#fffb;{}^reset;".format(target.client_id,
+                    "[^red;{}^reset;] {}{}^reset;^#fffb;#{}^reset;".format(target.client_id,
                                                           target.chat_prefix,
                                                           target.alias,
                                                           target.discriminator))
             else:
-                ret_list.append("{}{}^#fffb;{}^reset;".format(target.chat_prefix,
+                ret_list.append("{}{}^reset;^#fffb;#{}^reset;".format(target.chat_prefix,
                                                      target.alias,
                                                      target.discriminator))
         send_message(connection,
@@ -288,12 +288,13 @@ class GeneralCommands(SimpleCommandPlugin):
                 if connection.player.perm_check(
                         "general_commands.who_clientids"):
                     ret_list.append(
-                        "[^red;{}^reset;] {}{}^reset;"
+                        "[^red;{}^reset;] {}{}^reset;^#fffb;#{}^reset;"
                             .format(p.client_id,
                                     p.chat_prefix,
-                                    p.alias))
+                                    p.alias,
+                                    p.discriminator))
                 else:
-                    ret_list.append("{}{}^reset;".format(
+                    ret_list.append("{}{}^reset;^#fffb;#{}^reset;".format(
                         p.chat_prefix, p.alias))
         send_message(connection,
                      "{} players on planet:\n{}".format(len(ret_list),
