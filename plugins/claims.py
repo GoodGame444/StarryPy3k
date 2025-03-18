@@ -78,7 +78,7 @@ class Claims(StorageCommandPlugin):
                 uuid = connection.player.uuid
                 if ship.uuid.decode("utf-8") == uuid:
                     if not self.planet_protect.check_protection(ship):
-                        self.planet_protect. add_protection(ship,
+                        self.planet_protect.add_protection(ship,
                                                             connection.player)
                         send_message(connection,
                                      "Your ship has been auto-claimed in "

@@ -372,7 +372,7 @@ class PlanetProtect(StorageCommandPlugin):
             for uid in uuids:
                 plr = self.plugins['player_manager'].get_player_by_uuid(uid)
                 if plr:
-                    aliases.append(plr.alias)
+                    aliases.append(plr.alias + "#" + plr.discriminator)
             aliases = ", ".join(aliases)
             send_message(connection,
                          "Players allowed to build at location '{}': {}"
