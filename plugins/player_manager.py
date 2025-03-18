@@ -842,6 +842,8 @@ class PlayerManager(SimpleCommandPlugin):
             discriminator = "{!s:0>4.4}".format(secrets.randbelow(10000))
             if not self.get_player_by_alias(alias + "#" + discriminator):
                 break
+            else:
+                discriminator = None
 
         return discriminator
 
