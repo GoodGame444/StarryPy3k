@@ -899,8 +899,7 @@ class PlayerManager(SimpleCommandPlugin):
             if p.name != name:
                 p.name = name
                 alias = self.clean_name(name)
-                if alias != p.alias and (self.get_player_by_alias(alias)
-                                         or alias is None):
+                if alias != p.alias and (alias is None): # self.get_player_by_alias(alias) or
                     alias = uuid[0:4]
                 p.alias = alias
             if not hasattr(p, "discriminator"):

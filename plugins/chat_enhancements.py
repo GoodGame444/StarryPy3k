@@ -77,7 +77,7 @@ class ChatEnhancements(StorageCommandPlugin):
                         else "joined"
                     discriminator = ""
                     if hasattr(joiner, "discriminator"):
-                        discriminator = "^#fffb;#{}^reset".format(joiner.discriminator)
+                        discriminator = "^#fffb;#{}^reset;".format(joiner.discriminator)
                     data['parsed']['message'] = "{}{}^reset;{} has {} the " \
                                                 "server.".format(
                         joiner.chat_prefix, joiner.alias, discriminator, type)

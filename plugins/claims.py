@@ -83,11 +83,13 @@ class Claims(StorageCommandPlugin):
                         # character/player with the same alias (but a different discriminator).
                         # This comes at the cost of resetting the list of allowed builders on any
                         # shipworld to «only the owner» every time the owner rejoins or a shipworld
-                        # is (re-)loaded.
+                        # is (re-)loaded. Need to generate a discriminator because this code runs
+                        # *before* the discriminator would normally be generated for new players. Ugh.
                         self.planet_protect.reset_protection(ship, connection.player)
                         send_message(connection,
                                      "Your ship has been auto-claimed in "
                                      "your name.")
+                        self.storage["owners"] = {}
                         if uuid not in self.storage["owners"]:
                             self.storage["owners"][uuid] = []
                         self.storage["owners"][uuid].append(str(ship))
