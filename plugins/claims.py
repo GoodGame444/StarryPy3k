@@ -42,6 +42,7 @@ class Claims(StorageCommandPlugin):
     def is_owner(self, connection, location):
         uuid = connection.player.uuid
         uuid = uuid.decode("ascii") if isinstance(uuid, bytes) else uuid
+        self.logger.debug("Comparing player UUID {} with owner UUIDs {}".format(uuid, self.storage["owners"]))
         if connection.player.perm_check("planet_protect.bypass"):
             return True
         if uuid not in self.storage["owners"]:
@@ -78,7 +79,6 @@ class Claims(StorageCommandPlugin):
                 ship = connection.player.location
                 uuid = connection.player.uuid
                 ship_uuid = ship.uuid.decode("ascii") if isinstance(ship.uuid, bytes) else ship.uuid
-                self.logger.debug("Comparing ship UUID {} with player UUID {}".format(ship_uuid, uuid))
                 if ship_uuid == uuid:
                     if True: # if not self.planet_protect.check_protection(ship):
                         # FezzedOne: Reset shipworld protection every time a player (re-)joins
