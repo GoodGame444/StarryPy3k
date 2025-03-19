@@ -41,6 +41,7 @@ class Claims(StorageCommandPlugin):
 
     def is_owner(self, connection, location):
         uuid = connection.player.uuid
+        uuid = uuid.decode("ascii") if isinstance(uuid, bytes) else uuid
         if connection.player.perm_check("planet_protect.bypass"):
             return True
         if uuid not in self.storage["owners"]:
