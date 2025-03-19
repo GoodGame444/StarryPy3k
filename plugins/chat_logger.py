@@ -28,6 +28,6 @@ class ChatLogger(BasePlugin):
         """
         message = data["parsed"]["message"]
         # FezzedOne: Log entry format is `<NICK> [<ORIGINAL NAME>] {<UUID>}: <MESSAGE>`.
-        self.logger.info("{} [{}] {{{}}}: {}".format(connection.player.alias, connection.player.name,
-                                                     connection.player.uuid, message))
+        self.logger.info("{}#{} [{}] {{{}}}: {}".format(connection.player.alias, connection.player.discriminator,
+                                                        connection.player.name, connection.player.uuid, message))
         return True

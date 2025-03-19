@@ -15,6 +15,7 @@ import datetime
 import pprint
 import re
 import json
+import secrets
 from operator import attrgetter
 
 from base_plugin import SimpleCommandPlugin
@@ -24,15 +25,14 @@ from utilities import Command, DotDict, State, broadcast, send_message, \
     WarpType, WarpWorldType, WarpAliasType, Cupboard
 from packets import packets
 
-
 class Player:
     """
     Prototype class for a player.
     """
-    def __init__(self, uuid, species="unknown", name="", alias="",
+    def __init__(self, uuid: str, species="unknown", name="", alias="",
                  last_seen=None, ranks=None, logged_in=False,
                  connection=None, client_id=-1, ip="", planet="",
-                 muted=False, state=None, team_id=None):
+                 muted=False, state=None, team_id=None, discriminator=None):
         """
         Initialize a player object. Populate all the necessary details.
 
@@ -49,6 +49,7 @@ class Player:
         :param muted:
         :param state:
         :param team_id:
+        :param discriminator:
         :return:
         """
         self.uuid = uuid
@@ -76,6 +77,7 @@ class Player:
         self.last_location = planet
         self.muted = muted
         self.team_id = team_id
+        self.discriminator = discriminator
 
     def __str__(self):
         """
@@ -279,7 +281,7 @@ class PlayerManager(SimpleCommandPlugin):
 
     async def on_client_connect(self, data, connection):
         """
-        Catch when a the client updates the server with its connection
+        Catch when a client updates the server with its connection
         details. This is a key step to fingerprinting the client, and
         ensuring they stay in the wrapper. This is also where we apply our
         bans.
@@ -711,7 +713,7 @@ class PlayerManager(SimpleCommandPlugin):
             self.plugin_shelf[name] = DotDict({})
         return self.plugin_shelf[name]
 
-    def get_player_by_uuid(self, uuid):
+    def get_player_by_uuid(self, uuid: str | bytes) -> Player | None:
         """
         Grab a hook to a player by their uuid. Returns player object.
 
@@ -723,8 +725,9 @@ class PlayerManager(SimpleCommandPlugin):
             uuid = uuid.decode('utf-8')
         if uuid in self.shelf["players"]:
             return self.shelf["players"][uuid]
+        return None
 
-    def get_player_by_name(self, name, check_logged_in=False) -> Player:
+    def get_player_by_name(self, name: str, check_logged_in=False) -> Player | None:
         """
         Grab a hook to a player by their name. Return Boolean value if only
         checking login status. Returns player object otherwise.
@@ -739,8 +742,9 @@ class PlayerManager(SimpleCommandPlugin):
             if player.name.lower() == lname:
                 if not check_logged_in or player.logged_in:
                     return player
+        return None
 
-    def get_player_by_alias(self, alias, check_logged_in=False) -> Player:
+    def get_player_by_alias(self, alias: str, check_logged_in=False) -> Player | None:
         """
         Grab a hook to a player by their name. Return Boolean value if only
         checking login status. Returns player object otherwise.
@@ -752,22 +756,31 @@ class PlayerManager(SimpleCommandPlugin):
         """
         lname = alias.lower()
         for player in self.shelf["players"].values():
+            discriminator: str | None = getattr(player, "discriminator", None)
+            if not discriminator:
+                continue
+            if player.alias.lower() + "#" + discriminator == lname:
+                if not check_logged_in or player.logged_in:
+                    return player
+        for player in self.shelf["players"].values():
             if player.alias.lower() == lname:
                 if not check_logged_in or player.logged_in:
                     return player
+        return None
 
-    def get_player_by_client_id(self, id) -> Player:
+    def get_player_by_client_id(self, id: int) -> Player | None:
         """
         Grab a hook to a player by their client id. Returns player object.
 
-        :param id: Integer: Client Id of the player to check.
+        :param id: Integer: Client ID of the player to check.
         :return: Player object.
         """
         for player in self.shelf["players"].values():
             if player.client_id == id and player.logged_in:
                 return player
+        return None
 
-    def get_player_by_ip(self, ip, check_logged_in=False) -> Player:
+    def get_player_by_ip(self, ip, check_logged_in=False) -> Player | None:
         """
         Grab a hook to a player by their IP. Returns boolean if only
         checking login status. Returns Player object otherwise.
@@ -781,16 +794,22 @@ class PlayerManager(SimpleCommandPlugin):
             if player.ip == ip:
                 if not check_logged_in or player.logged_in:
                     return player
+        return None
 
-    def find_player(self, search, check_logged_in=False):
+    def find_player(self, search: str, check_logged_in=False) -> Player | None:
         """
         Convenience method to try and find a player by a variety of methods.
         Checks for alias, then raw name, then client id.
 
-        :param search: The alias, raw name, or id of the player to check.
+        :param search: String: The alias, raw name, or id of the player to check.
         :param check_logged_in: Boolean: Return the login status only if true.
         :return: Mixed: Boolean on logged_in check, player object otherwise.
         """
+        # FezzedOne: Added $$ prefix to force a UUID search.
+        if len(search) == 34 and search.startswith('$$'):
+            player = self.get_player_by_uuid(search[2:])
+            if player is not None:
+                return player
         player = self.get_player_by_alias(search, check_logged_in)
         if player is not None:
             return player
@@ -811,9 +830,28 @@ class PlayerManager(SimpleCommandPlugin):
         player = self.get_player_by_ip(search, check_logged_in)
         if player is not None:
             return player
+        return None
 
-    async def _add_or_get_player(self, uuid, species, name="", last_seen=None,
-                           ranks=None, logged_in=False, connection=None,
+    def generate_discriminator(self, alias, num_tries=10) -> str | None:
+        """
+        Generates a random discriminator. Avoids existing `<alias>#<discriminator>` collisions.
+
+        :param alias: String: Alias of character.
+        :param num_tries: Number of tries. Defaults to 10.
+        :return: String | None: The generated discriminator, or if no non-colliding combination can be found, None.
+        """
+        discriminator = None
+        for i in range(0, num_tries):
+            discriminator = "{!s:0>4.4}".format(secrets.randbelow(10000))
+            if not self.get_player_by_alias(alias + "#" + discriminator):
+                break
+            else:
+                discriminator = None
+
+        return discriminator
+
+    async def _add_or_get_player(self, uuid: str | bytes, species: str, name: str | bytes="",
+                           last_seen=None, ranks=None, logged_in=False, connection=None,
                            client_id=-1, ip="", planet="", muted=False,
                            **kwargs) -> Player:
         """
@@ -837,12 +875,16 @@ class PlayerManager(SimpleCommandPlugin):
         """
 
         if isinstance(uuid, bytes):
-            uuid = uuid.decode("ascii")
+            uuid: str = uuid.decode("ascii")
         if isinstance(name, bytes):
-            name = name.decode("utf-8")
+            name: str = name.decode("utf-8")
         alias = self.clean_name(name)
         if alias is None:
             alias = uuid[0:4]
+
+        # FezzedOne: For linters and type checkers.
+        uuid: str = uuid
+        name: str = name
 
         if uuid in self.shelf["players"]:
             self.logger.info("Known player is attempting to log in: "
@@ -857,10 +899,14 @@ class PlayerManager(SimpleCommandPlugin):
             if p.name != name:
                 p.name = name
                 alias = self.clean_name(name)
-                if alias != p.alias and (self.get_player_by_alias(alias)
-                                         or alias is None):
+                if alias != p.alias and (alias is None): # self.get_player_by_alias(alias) or
                     alias = uuid[0:4]
                 p.alias = alias
+            if not hasattr(p, "discriminator"):
+                new_discriminator = self.generate_discriminator(p.alias)
+                if new_discriminator is None:
+                    raise ValueError("Kicked due to name + discriminator collision. Try again.")
+                p.discriminator = new_discriminator
             p.update_ranks(self.ranks)
             return p
         else:
@@ -875,6 +921,10 @@ class PlayerManager(SimpleCommandPlugin):
             new_player = Player(uuid, species, name, alias, last_seen,
                                 ranks, logged_in, connection, client_id, ip,
                                 planet, muted)
+            new_discriminator = self.generate_discriminator(new_player.alias)
+            new_player.discriminator = new_discriminator
+            if new_discriminator is None:
+                raise ValueError("Kicked due to name + discriminator collision. Try again.")
             new_player.update_ranks(self.ranks)
             self.shelf["players"][uuid] = new_player
             return new_player

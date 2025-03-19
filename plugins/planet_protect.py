@@ -44,6 +44,12 @@ class ProtectedLocation:
         if builder.uuid in self.allowed_builders:
             self.allowed_builders.remove(builder.uuid)
 
+    def reset_builders(self, allowed_builder):
+        if allowed_builder:
+            self.allowed_builders = {allowed_builder.uuid}
+        else:
+            self.allowed_builders = set()
+
     def check_builder(self, builder):
         return builder.uuid in self.allowed_builders
 
@@ -228,6 +234,24 @@ class PlanetProtect(StorageCommandPlugin):
             protection.add_builder(player)
         return protection
 
+    def reset_protection(self, location, player):
+        """
+        Reset a location's builder list to only the specified builder. If the
+        location is not already protected, make it protected.
+
+        :param location: Location to reset.
+        :param player: New sole builder for location.
+        :return: ProtectedLocation object for location.
+        """
+        if str(location) not in self.storage["locations"]:
+            protection = ProtectedLocation(location, player)
+            self.storage["locations"][str(location)] = protection
+        else:
+            protection = self.storage["locations"][str(location)]
+            protection.protect()
+            protection.reset_builders(player if player else None)
+        return protection
+
     def disable_protection(self, location):
         """
         Remove protection from a location.
@@ -372,7 +396,10 @@ class PlanetProtect(StorageCommandPlugin):
             for uid in uuids:
                 plr = self.plugins['player_manager'].get_player_by_uuid(uid)
                 if plr:
-                    aliases.append(plr.alias)
+                    if hasattr(plr, "discriminator"):
+                        aliases.append(plr.alias + "^#fff8;#" + plr.discriminator + "^reset;")
+                    else:
+                        aliases.append(plr.alias)
             aliases = ", ".join(aliases)
             send_message(connection,
                          "Players allowed to build at location '{}': {}"

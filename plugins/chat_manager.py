@@ -84,7 +84,7 @@ class ChatManager(SimpleCommandPlugin):
             raise NameError
         elif self.mute_check(player):
             send_message(connection,
-                         "{} is already muted.".format(player.alias))
+                         "{}#{} is already muted.".format(player.alias, player.discriminator))
             return
         elif player.priority >= connection.player.priority:
             send_message(connection,
@@ -94,10 +94,11 @@ class ChatManager(SimpleCommandPlugin):
         else:
             self.storage.mutes.add(player)
             send_message(connection,
-                         "{} has been muted.".format(player.alias))
+                         "{}#{} has been muted.".format(player.alias, player.discriminator))
             if player.logged_in:
                 send_message(player.connection,
-                             "{} has muted you.".format(connection.player.alias))
+                             "{}#{} has muted you.".format(connection.player.alias,
+                                                           connection.player.discriminator))
 
     @Command("unmute",
              perm="chat_manager.mute",
@@ -119,12 +120,13 @@ class ChatManager(SimpleCommandPlugin):
             raise NameError
         elif not self.mute_check(player):
             send_message(connection,
-                         "{} isn't muted.".format(player.alias))
+                         "{}#{} isn't muted.".format(player.alias, player.discriminator))
             return
         else:
             self.storage.mutes.remove(player)
             send_message(connection,
-                         "{} has been unmuted.".format(player.alias))
+                         "{}#{} has been unmuted.".format(player.alias, player.discriminator))
             if player.logged_in:
                 send_message(player.connection,
-                             "{} has unmuted you.".format(connection.player.alias))
+                             "{}#{} has unmuted you.".format(connection.player.alias,
+                                                             connection.player.discriminator))

@@ -41,6 +41,8 @@ class Claims(StorageCommandPlugin):
 
     def is_owner(self, connection, location):
         uuid = connection.player.uuid
+        uuid = uuid.decode("ascii") if isinstance(uuid, bytes) else uuid
+        self.logger.debug("Comparing player UUID {} with owner UUIDs {}".format(uuid, self.storage["owners"]))
         if connection.player.perm_check("planet_protect.bypass"):
             return True
         if uuid not in self.storage["owners"]:
@@ -76,13 +78,20 @@ class Claims(StorageCommandPlugin):
             if connection.player.location.locationtype() == "ShipWorld":
                 ship = connection.player.location
                 uuid = connection.player.uuid
-                if ship.uuid.decode("utf-8") == uuid:
-                    if not self.planet_protect.check_protection(ship):
-                        self.planet_protect. add_protection(ship,
-                                                            connection.player)
+                ship_uuid = ship.uuid.decode("ascii") if isinstance(ship.uuid, bytes) else ship.uuid
+                if ship_uuid == uuid:
+                    if True: # if not self.planet_protect.check_protection(ship):
+                        # FezzedOne: Reset shipworld protection every time a player (re-)joins
+                        # to avoid a known bug where the claim sometimes gets assigned to a different
+                        # character/player with the same alias (but a different discriminator).
+                        # This comes at the cost of resetting the list of allowed builders on any
+                        # shipworld to «only the owner» every time the owner rejoins or a shipworld
+                        # is (re-)loaded.
+                        self.planet_protect.reset_protection(ship, connection.player)
                         send_message(connection,
                                      "Your ship has been auto-claimed in "
                                      "your name.")
+                        self.storage["owners"] = {}
                         if uuid not in self.storage["owners"]:
                             self.storage["owners"][uuid] = []
                         self.storage["owners"][uuid].append(str(ship))
@@ -257,7 +266,10 @@ class Claims(StorageCommandPlugin):
             for uid in uuids:
                 plr = self.plugins["player_manager"].get_player_by_uuid(uid)
                 if plr:
-                    aliases.append(plr.alias)
+                    if hasattr(plr, "discriminator"):
+                        aliases.append(plr.alias + "^#fff8;#" + plr.discriminator + "^reset;")
+                    else:
+                        aliases.append(plr.alias)
             aliases = ", ".join(aliases)
             send_message(connection,
                          "Players allowed to build at world '{}': {}"
