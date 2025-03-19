@@ -372,7 +372,7 @@ class PlanetProtect(StorageCommandPlugin):
             for uid in uuids:
                 plr = self.plugins['player_manager'].get_player_by_uuid(uid)
                 if plr:
-                    if getattr(plr, "discriminator"):
+                    if hasattr(plr, "discriminator"):
                         aliases.append(plr.alias + "^#fff8;#" + plr.discriminator + "^reset;")
                     else:
                         aliases.append(plr.alias)

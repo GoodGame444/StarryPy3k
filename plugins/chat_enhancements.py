@@ -75,9 +75,12 @@ class ChatEnhancements(StorageCommandPlugin):
                         joinmsg.group(1))
                     type = "left" if joinmsg.group(2) is not None \
                         else "joined"
-                    data['parsed']['message'] = "{}{}^reset;^#fffb;#{}^reset; has {} the " \
+                    discriminator = ""
+                    if hasattr(joiner, "discriminator"):
+                        discriminator = "^#fffb;#{}^reset".format(joiner.discriminator)
+                    data['parsed']['message'] = "{}{}^reset;{} has {} the " \
                                                 "server.".format(
-                        joiner.chat_prefix, joiner.alias, joiner.discriminator, type)
+                        joiner.chat_prefix, joiner.alias, discriminator, type)
                     sender = self.make_timestamp()
             else:
                 sender = self.plugins['player_manager'].get_player_by_name(

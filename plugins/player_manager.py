@@ -756,7 +756,7 @@ class PlayerManager(SimpleCommandPlugin):
         """
         lname = alias.lower()
         for player in self.shelf["players"].values():
-            discriminator = getattr(player, "discriminator", "")
+            discriminator: str | None = getattr(player, "discriminator", None)
             if not discriminator:
                 continue
             if player.alias.lower() + "#" + discriminator == lname:
