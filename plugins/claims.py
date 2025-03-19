@@ -76,15 +76,15 @@ class Claims(StorageCommandPlugin):
             if connection.player.location.locationtype() == "ShipWorld":
                 ship = connection.player.location
                 uuid = connection.player.uuid
-                if ship.uuid.decode("utf-8") == uuid:
+                ship_uuid = ship.uuid.decode("ascii") if isinstance(ship.uuid, bytes) else ship.uuid
+                if ship_uuid == uuid:
                     if True: # if not self.planet_protect.check_protection(ship):
                         # FezzedOne: Reset shipworld protection every time a player (re-)joins
                         # to avoid a known bug where the claim sometimes gets assigned to a different
                         # character/player with the same alias (but a different discriminator).
                         # This comes at the cost of resetting the list of allowed builders on any
                         # shipworld to «only the owner» every time the owner rejoins or a shipworld
-                        # is (re-)loaded. Need to generate a discriminator because this code runs
-                        # *before* the discriminator would normally be generated for new players. Ugh.
+                        # is (re-)loaded.
                         self.planet_protect.reset_protection(ship, connection.player)
                         send_message(connection,
                                      "Your ship has been auto-claimed in "

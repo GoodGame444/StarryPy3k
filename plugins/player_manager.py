@@ -29,7 +29,7 @@ class Player:
     """
     Prototype class for a player.
     """
-    def __init__(self, uuid, species="unknown", name="", alias="",
+    def __init__(self, uuid: str, species="unknown", name="", alias="",
                  last_seen=None, ranks=None, logged_in=False,
                  connection=None, client_id=-1, ip="", planet="",
                  muted=False, state=None, team_id=None, discriminator=None):
