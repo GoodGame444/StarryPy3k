@@ -81,6 +81,8 @@ class Claims(StorageCommandPlugin):
                         # FezzedOne: Reset shipworld protection every time a player (re-)joins
                         # to avoid a known bug where the claim sometimes gets assigned to a different
                         # character/player with the same alias (but a different discriminator).
+                        # This comes at the cost of resetting the list of allowed builders on any
+                        # shipworld to «only the owner» every time the owner rejoins.
                         self.planet_protect.disable_protection(ship)
                         self.planet_protect.add_protection(ship,
                                                             connection.player)
