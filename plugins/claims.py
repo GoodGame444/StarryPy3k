@@ -77,7 +77,11 @@ class Claims(StorageCommandPlugin):
                 ship = connection.player.location
                 uuid = connection.player.uuid
                 if ship.uuid.decode("utf-8") == uuid:
-                    if not self.planet_protect.check_protection(ship):
+                    if True: # if not self.planet_protect.check_protection(ship):
+                        # FezzedOne: Reset shipworld protection every time a player (re-)joins
+                        # to avoid a known bug where the claim sometimes gets assigned to a different
+                        # character/player with the same alias (but a different discriminator).
+                        self.planet_protect.disable_protection(ship)
                         self.planet_protect.add_protection(ship,
                                                             connection.player)
                         send_message(connection,
@@ -257,7 +261,10 @@ class Claims(StorageCommandPlugin):
             for uid in uuids:
                 plr = self.plugins["player_manager"].get_player_by_uuid(uid)
                 if plr:
-                    aliases.append(plr.alias)
+                    if getattr(plr, "discriminator"):
+                        aliases.append(plr.alias + "^#fff8;#" + plr.discriminator + "^reset;")
+                    else:
+                        aliases.append(plr.alias)
             aliases = ", ".join(aliases)
             send_message(connection,
                          "Players allowed to build at world '{}': {}"
