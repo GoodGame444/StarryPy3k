@@ -69,17 +69,17 @@ class GeneralCommands(SimpleCommandPlugin):
                 mute_line = "Mute Status: ^red;Muted^green;"
             else:
                 mute_line = "Mute Status: ^green;Unmuted"
-        return ("^white;Name: {}^#fffb;#{}^white; {}\n"
-                "Raw Name: {}^white;\n"
-                "Ranks: ^yellow;{}^white;\n"
-                "UUID: ^yellow;{}^white;\n"
-                "IP address: ^cyan;{}^white;\n"
-                "Team ID: ^cyan;{}^white;\n"
-                "Current location: ^yellow;{}^white;\n"
-                "Last seen: ^yellow;{}^white;\n"
-                "Ban status: {}^white;\n"
+        return ("Name: {} {}\n"
+                "Raw Name: {}\n"
+                "Ranks: ^yellow;{}^green;\n"
+                "UUID: ^yellow;{}^green;\n"
+                "IP address: ^cyan;{}^green;\n"
+                "Team ID: ^cyan;{}^green;\n"
+                "Current location: ^yellow;{}^green;\n"
+                "Last seen: ^yellow;{}^green;\n"
+                "Ban status: {}^green;\n"
                 "{}".format(
-                    target.alias, target.discriminator, logged_in,
+                    target.alias, logged_in,
                     target.name,
                     ", ".join(target.ranks),
                     target.uuid,
@@ -120,14 +120,12 @@ class GeneralCommands(SimpleCommandPlugin):
             target = self.plugins['player_manager'].get_player_by_uuid(player)
             if connection.player.perm_check("general_commands.who_clientids"):
                 ret_list.append(
-                    "[^red;{}^reset;] {}{}^reset;^#fffb;#{}^reset;".format(target.client_id,
+                    "[^red;{}^reset;] {}{}^reset;".format(target.client_id,
                                                           target.chat_prefix,
-                                                          target.alias,
-                                                          target.discriminator))
+                                                          target.alias))
             else:
-                ret_list.append("{}{}^reset;^#fffb;#{}^reset;".format(target.chat_prefix,
-                                                     target.alias,
-                                                     target.discriminator))
+                ret_list.append("{}{}^reset;".format(target.chat_prefix,
+                                                     target.alias))
         send_message(connection,
                      "{} players online:\n{}".format(len(ret_list),
                                                      ", ".join(ret_list)))
@@ -226,14 +224,14 @@ class GeneralCommands(SimpleCommandPlugin):
         """
         if len(data) > 1 and connection.player.perm_check(
                 "general_commands.nick_others"):
-            target = self.plugins['player_manager'].find_player(data[0])
+            target = self.plugins.player_manager.find_player(data[0])
             alias = " ".join(data[1:])
         else:
             alias = " ".join(data)
             target = connection.player
         if len(data) == 0:
             alias = connection.player.name
-        # conflict = self.plugins['player_manager'].get_player_by_alias(alias)
+        # conflict = self.plugins.player_manager.get_player_by_alias(alias)
         # if conflict and target != conflict:
         #     raise ValueError("There's already a user by that name.")
         # else:
@@ -242,14 +240,6 @@ class GeneralCommands(SimpleCommandPlugin):
             send_message(connection,
                          "Nickname contains no valid characters.")
             return
-        # FezzedOne: Regenerate the discriminator if there ends up being a collision.
-        collision = self.plugins['player_manager'].get_player_by_alias(clean_alias + "#" + target.discriminator)
-        if collision and target != collision:
-            new_discriminator = self.plugins['player_manager'].generate_discriminator(clean_alias)
-            if new_discriminator is not None:
-                target.discriminator = new_discriminator
-            else:
-                raise ValueError("Unable to change nickname due to name + discriminator collision. Try again.")
         old_alias = target.alias
         target.alias = clean_alias
         broadcast(connection, "{}'s name has been changed to {}".format(
@@ -288,13 +278,12 @@ class GeneralCommands(SimpleCommandPlugin):
                 if connection.player.perm_check(
                         "general_commands.who_clientids"):
                     ret_list.append(
-                        "[^red;{}^reset;] {}{}^reset;^#fffb;#{}^reset;"
+                        "[^red;{}^reset;] {}{}^reset;"
                             .format(p.client_id,
                                     p.chat_prefix,
-                                    p.alias,
-                                    p.discriminator))
+                                    p.alias))
                 else:
-                    ret_list.append("{}{}^reset;^#fffb;#{}^reset;".format(
+                    ret_list.append("{}{}^reset;".format(
                         p.chat_prefix, p.alias))
         send_message(connection,
                      "{} players on planet:\n{}".format(len(ret_list),

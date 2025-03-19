@@ -62,9 +62,3 @@ virtualenv
 
 # dev container
 .devcontainer
-
-# Pipfile
-Pipfile
-
-# Sourcetrail files
-*.srctrl*

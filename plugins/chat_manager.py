@@ -84,7 +84,7 @@ class ChatManager(SimpleCommandPlugin):
             raise NameError
         elif self.mute_check(player):
             send_message(connection,
-                         "{}#{} is already muted.".format(player.alias, player.discriminator))
+                         "{} is already muted.".format(player.alias))
             return
         elif player.priority >= connection.player.priority:
             send_message(connection,
@@ -94,11 +94,10 @@ class ChatManager(SimpleCommandPlugin):
         else:
             self.storage.mutes.add(player)
             send_message(connection,
-                         "{}#{} has been muted.".format(player.alias, player.discriminator))
+                         "{} has been muted.".format(player.alias))
             if player.logged_in:
                 send_message(player.connection,
-                             "{}#{} has muted you.".format(connection.player.alias,
-                                                           connection.player.discriminator))
+                             "{} has muted you.".format(connection.player.alias))
 
     @Command("unmute",
              perm="chat_manager.mute",
@@ -120,13 +119,12 @@ class ChatManager(SimpleCommandPlugin):
             raise NameError
         elif not self.mute_check(player):
             send_message(connection,
-                         "{}#{} isn't muted.".format(player.alias, player.discriminator))
+                         "{} isn't muted.".format(player.alias))
             return
         else:
             self.storage.mutes.remove(player)
             send_message(connection,
-                         "{}#{} has been unmuted.".format(player.alias, player.discriminator))
+                         "{} has been unmuted.".format(player.alias))
             if player.logged_in:
                 send_message(player.connection,
-                             "{}#{} has unmuted you.".format(connection.player.alias,
-                                                             connection.player.discriminator))
+                             "{} has unmuted you.".format(connection.player.alias))
