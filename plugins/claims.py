@@ -84,9 +84,7 @@ class Claims(StorageCommandPlugin):
                         # This comes at the cost of resetting the list of allowed builders on any
                         # shipworld to «only the owner» every time the owner rejoins or a shipworld
                         # is (re-)loaded.
-                        self.planet_protect.disable_protection(ship)
-                        self.planet_protect.add_protection(ship,
-                                                            connection.player)
+                        self.planet_protect.reset_protection(ship, connection.player)
                         send_message(connection,
                                      "Your ship has been auto-claimed in "
                                      "your name.")
