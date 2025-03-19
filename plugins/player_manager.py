@@ -757,6 +757,8 @@ class PlayerManager(SimpleCommandPlugin):
         lname = alias.lower()
         for player in self.shelf["players"].values():
             discriminator = getattr(player, "discriminator", "")
+            if not discriminator:
+                continue
             if player.alias.lower() + "#" + discriminator == lname:
                 if not check_logged_in or player.logged_in:
                     return player
